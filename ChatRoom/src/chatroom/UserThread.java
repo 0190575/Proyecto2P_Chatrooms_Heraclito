@@ -32,6 +32,7 @@ public class UserThread implements Runnable {
         } catch (IOException ex) {
             Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+        sendMessage(name + " has joined the room");
     }
     
     
