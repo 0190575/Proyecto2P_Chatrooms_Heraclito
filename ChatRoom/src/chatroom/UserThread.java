@@ -17,6 +17,7 @@ import static chatroom.ChatRoom.connectedUsers;
  *
  * @author Heraclito
  */
+
 public class UserThread implements Runnable {
     public String name;
     public Socket socket;
@@ -33,6 +34,7 @@ public class UserThread implements Runnable {
             Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         sendMessage(name + " has joined the room");
+        System.out.println(name);
     }
     
     
@@ -47,8 +49,8 @@ public class UserThread implements Runnable {
                 if(inSocket.available() > 0)
                 {
                     String msg = inSocket.readUTF();
-                    System.out.println(msg);
                     sendMessage(name + ": " + msg);
+                    //System.out.println(msg);
                    // outSocket.writeUTF(msg);
                 }
                 
