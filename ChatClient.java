@@ -16,12 +16,27 @@ public class ChatClient
     DataOutputStream outSocket = new DataOutputStream(socket.getOutputStream());
     Scanner scan = new Scanner(System.in);
     String name = scan.nextLine();
+    outSocket.writeInt(101);
     outSocket.writeUTF(name);
+    int n = inSocket.readInt();
+    String a;
+    for(int i = 0; i < n; i++)
+      a = inSocket.readUTF();
+    n = inSocket.readInt();
+    for(int i = 0; i < n; i++)
+      a = inSocket.readUTF();
+    outSocket.writeInt(103);
+    outSocket.writeUTF("Prueba");
     do {
+      int h = inSocket.readInt();
+      String g = inSocket.readUTF();
       String msg = inSocket.readUTF();
       System.out.println(msg);
-      if(inSocket.available() == 0)
-        outSocket.writeUTF(scan.nextLine());
+        String m = scan.nextLine();
+      outSocket.writeInt(107);
+      outSocket.writeUTF("Prueba");
+      outSocket.writeUTF(m);
+
     } while (true);
   }
       catch(Exception ex){

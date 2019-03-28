@@ -25,40 +25,118 @@ import javafx.scene.paint.Paint;
 public class Receiver implements Runnable{
     
     public DataInputStream inSocket;
-    ScrollPane sp;
+    Menu menu;
 
-    public Receiver(DataInputStream inSocket, ScrollPane sp) {
+    public Receiver(DataInputStream inSocket, Menu menu) {
         this.inSocket = inSocket;
-        this.sp = sp;
+        this.menu = menu;
     }
     
     @Override
     public void run() {
         
         do {
-            String msg;
+            int code;
             try {
-                msg = inSocket.readUTF();
-                Platform.runLater(() -> {
-
-                      updateMessages(msg);
-                    });
+                code = inSocket.readInt();
+                selectAction(code);
+//                Platform.runLater(() -> {
+//                    try {
+//                        //
+//                        selectAction(code);
+////                      updateMessages(msg);
+//                    } catch (IOException ex) {
+//                        Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                    });
                 
             } catch (IOException ex) {
                 Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
             }
         } while (true);
     }
-    public void updateMessages(String message)
+    
+    private void selectAction(int action) throws IOException
     {
-        Label l = new Label(message);
-        l.setTextFill(Paint.valueOf("blue"));
-        l.setStyle("-fx-font-weight: bold;");
-        HBox hb = new HBox();
-        hb.setPadding(new Insets(10, 10, 10, 10));
-        hb.setAlignment(Pos.CENTER_LEFT);
-        hb.getChildren().add(l);
-        ((VBox)sp.getContent( )).getChildren().add(hb);
-        sp.setVvalue(1.0d);
+        switch(action)
+        {
+            case 10: //Nuevo usuario
+            {
+                String s = inSocket.readUTF();
+                Platform.runLater(() -> {
+                menu.addUser(s);
+                });
+                break;
+            }
+            case 11: //Nueva sala
+            {
+                String s = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    menu.addRoom(s);                
+                });
+                break;
+            }
+            case 12: // Respuesta de union a sala
+            {
+                String s = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    menu.addMyRoom(new ChatRoom(s, menu.outSocket));
+                });
+                break;
+            }
+            case 13:
+            {
+                break;
+            }
+            case 14: //Mensaje
+            {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                String msg = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    cr.updateMessages(msg);
+                });
+                break;
+            }
+            case 15:
+            {
+                break;
+            }
+            case 16:
+            {
+                break;
+            }
+            case 17:
+            {
+                break;
+            }
+            case 18: //Entrada de usuario a la sala
+            {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                String user = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    cr.updateMembers(user);
+                });
+                break;
+            }
+            case 19:
+            {
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
     }
+//    public void updateMessages(String message)
+//    {
+//        Label l = new Label(message);
+//        l.setTextFill(Paint.valueOf("blue"));
+//        l.setStyle("-fx-font-weight: bold;");
+//        HBox hb = new HBox();
+//        hb.setPadding(new Insets(10, 10, 10, 10));
+//        hb.setAlignment(Pos.CENTER_LEFT);
+//        hb.getChildren().add(l);
+//        messages.getChildren().add(hb);
+//    }
 }

@@ -25,10 +25,12 @@ public class ChatRoom {
      * @param args the command line arguments
      */
     public static List<UserThread> connectedUsers;
+    public static List<Room> activeRooms;
     
     public static void main(String[] args) throws IOException {
         ServerSocket server = new ServerSocket(5000);
         connectedUsers = Collections.synchronizedList(new ArrayList<UserThread>());
+        activeRooms = Collections.synchronizedList(new ArrayList<Room>());
         while(true)
         {
             Socket ss = null;
@@ -41,7 +43,6 @@ public class ChatRoom {
                     Thread t = new Thread(current);
                     //Thread t = new Thread(new UserThread(ss, new DataInputStream(ss.getInputStream()), new DataOutputStream(ss.getOutputStream())));
                     t.start();
-                    
                 }
                 else
                     break;

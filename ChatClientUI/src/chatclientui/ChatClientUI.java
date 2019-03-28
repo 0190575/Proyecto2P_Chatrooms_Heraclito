@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -39,49 +40,60 @@ import javafx.stage.Stage;
  * @author Heraclito
  */
 public class ChatClientUI extends Application {
-    String nickname;
+    public static String nickname;
+    public static Stage stage;
     Socket socket;
     DataInputStream inSocket;
     DataOutputStream outSocket;
-    public ScrollPane sp;
+    ArrayList<ChatRoom> myChatRooms;
     @Override
     public void start(Stage primaryStage) {
+//        myChatRooms = new ArrayList<ChatRoom>();
+//        ChatRoom prueba = new ChatRoom("Sala uno", outSocket);
+//        myChatRooms.add(prueba);
         
-        try
-        {
-
-        socket = new Socket("127.0.0.1", 5000);
-        inSocket = new DataInputStream(socket.getInputStream());
-        outSocket = new DataOutputStream(socket.getOutputStream());
-
-        }
-        catch(Exception ex){
-          System.out.println("You must first start the server socket");
-          System.out.println("(YourServer.java) at the command prompt.");
-          System.out.println(ex);
-      }
+        
         Button btn = new Button();
         btn.setText("START");
+        //btn.setId(prueba.getName());
         Label nameLabel = new Label("Nickname");
         Label ipLabel = new Label("Server's IP address");
         TextField ip = new TextField();
+        ip.setText("127.0.0.1");
         TextField name = new TextField();
         btn.setOnAction(new EventHandler<ActionEvent>() {
-            
             @Override
             public void handle(ActionEvent event) {
                 nickname = name.getText();
-                primaryStage.setScene(chatScene());
-                
-                Thread t = new Thread(new Receiver(inSocket, sp));
-                t.start();
+                try
+                {
+
+                socket = new Socket(ip.getText(), 5000);
+                inSocket = new DataInputStream(socket.getInputStream());
+                outSocket = new DataOutputStream(socket.getOutputStream());
+
+                }
+                catch(Exception ex){
+                  System.out.println("You must first start the server socket");
+                  System.out.println(ex);
+              }
+                Menu menu = new Menu(primaryStage, outSocket);
                 
                 try {
+                    outSocket.writeInt(101);
                     outSocket.writeUTF(nickname);
+                    int n = inSocket.readInt();
+                    for(int i = 0; i < n; i++)
+                        menu.addUser(inSocket.readUTF());
+                    n = inSocket.readInt();
+                    for(int i = 0; i < n; i++)
+                        menu.addRoom(inSocket.readUTF());
                 } catch (IOException ex) {
                     Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
+                primaryStage.setScene(menu.menuScene());
+                Thread t = new Thread(new Receiver(inSocket, menu));
+                t.start();
                 primaryStage.show();
             }
         });
@@ -109,50 +121,8 @@ public class ChatClientUI extends Application {
         launch(args);
     }
     
-    private Scene chatScene()
-    {
-        VBox vb = new VBox();
-        StackPane root = new StackPane();
-        sp = new ScrollPane();
-        VBox messages = new VBox();
-        sp.setFitToWidth(true);
-        sp.setPrefHeight(350);
-        sp.setContent(messages);
-        TextField message = new TextField();
-        message.setOnKeyPressed(sendMessage());
-        vb.setPadding(new Insets(15, 15, 15, 15));
-        vb.setSpacing(10);
-        vb.getChildren().add(sp);
-        vb.getChildren().add(message);
-        Scene newScene = new Scene(vb, 500, 600);
-        return newScene;
-    }
     
-    private EventHandler sendMessage(){
-        EventHandler enter = new EventHandler<KeyEvent>()
-        {
-            @Override
-            public void handle(KeyEvent ke) {
-                if(ke.getCode().equals(KeyCode.ENTER))
-                {
-                    String msg = ((TextField)ke.getSource()).getText();
-                    ((TextField)ke.getSource()).setText("");
-                    if(!msg.equals(""))
-                    {
-                        updateMessages(msg);
-                        try {
-                            outSocket.writeUTF(msg);
-                        } catch (IOException ex) {
-                            Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-            }
-        };
-        return enter;
-    }
-    
-    synchronized public void updateMessages(String message)
+    synchronized public void updateMessages(String message, VBox messages)
     {
         Label l = new Label(message);
         l.setTextFill(Paint.valueOf("red"));
@@ -163,8 +133,18 @@ public class ChatClientUI extends Application {
         hb.setAlignment(Pos.CENTER_RIGHT);
         hb.autosize();
         hb.getChildren().add(l);
-        ((VBox)sp.getContent( )).getChildren().add(hb);
-        sp.setVvalue(1.0d);
+        messages.getChildren().add(hb);
+    }
+    
+    public ChatRoom getChatRoombyName(String crName)
+    {
+        for(int i = 0; i < myChatRooms.size(); i++)
+        {
+            if(myChatRooms.get(i).getName().equals(crName))
+                return myChatRooms.get(i);
+        }
+            
+        return null;
     }
 }
 
