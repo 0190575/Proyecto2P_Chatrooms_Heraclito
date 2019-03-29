@@ -105,8 +105,13 @@ public class Receiver implements Runnable{
             {
                 break;
             }
-            case 17:
+            case 17: //Usuario sale de sala
             {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                String member = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    cr.deleteMember(member);
+                });
                 break;
             }
             case 18: //Entrada de usuario a la sala

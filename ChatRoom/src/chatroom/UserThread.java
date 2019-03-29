@@ -29,13 +29,6 @@ public class UserThread implements Runnable {
         this.socket = socket;
         this.inSocket = inSocket;
         this.outSocket = outSocket;
-//        try {
-//            this.name = inSocket.readUTF();
-//        } catch (IOException ex) {
-//            Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        sendMessage(name + " has joined the room");
-//        System.out.println(name);
     }
     
     
@@ -110,11 +103,11 @@ public class UserThread implements Runnable {
             {
                 String roomName = inSocket.readUTF();
                 activeRooms.add(new Room(this, roomName));
-            for (UserThread connectedUser : connectedUsers) {
+                for (UserThread connectedUser : connectedUsers) 
+                {
                     connectedUser.outSocket.writeInt(11);
                     connectedUser.outSocket.writeUTF(roomName);
-                
-            }
+                }
                     
                 break;
             }
@@ -142,8 +135,27 @@ public class UserThread implements Runnable {
                 }
                 break;
             }
-            case 104:
+            case 104: //Salida de usuario de sala
             {
+                Room cr = findRoom(inSocket.readUTF());
+                if(cr != null)
+                {
+                    cr.removeMember(this);
+                    for(int i = 0; i < cr.members.size(); i++)
+                    {
+                        if(!cr.members.get(i).equals(this))
+                        {
+                            try {
+                                cr.members.get(i).outSocket.writeInt(17);
+                                cr.members.get(i).outSocket.writeUTF(cr.name);
+                                cr.members.get(i).outSocket.writeUTF(name);
+                            } catch (IOException ex) {
+                                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+
+                    }
+                }
                 break;
             }
             case 105: 

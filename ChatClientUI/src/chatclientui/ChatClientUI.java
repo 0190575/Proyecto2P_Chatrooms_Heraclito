@@ -8,27 +8,19 @@ package chatclientui;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -42,6 +34,7 @@ import javafx.stage.Stage;
 public class ChatClientUI extends Application {
     public static String nickname;
     public static Stage stage;
+    public static Menu menu;
     Socket socket;
     DataInputStream inSocket;
     DataOutputStream outSocket;
@@ -77,7 +70,7 @@ public class ChatClientUI extends Application {
                   System.out.println("You must first start the server socket");
                   System.out.println(ex);
               }
-                Menu menu = new Menu(primaryStage, outSocket);
+                menu = new Menu(primaryStage, outSocket);
                 
                 try {
                     outSocket.writeInt(101);

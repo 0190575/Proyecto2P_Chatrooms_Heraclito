@@ -51,18 +51,19 @@ public class Room {
         members.add(member);
     }
     
-    public void removeMember(String name)
+    public void removeMember(UserThread member) //String name)
     {
-        for(int i = 0; i < members.size(); i++)
-        {
-            
-            if(members.get(i).name.equals(name))
-            {
-               members.remove(i);
-               break;
-            }
-                
-        }
+        members.remove(member);
+//        for(int i = 0; i < members.size(); i++)
+//        {
+//          
+//            if(members.get(i).name.equals(name))
+//            {
+//               members.remove(i);
+//               break;
+//            }
+//                
+//        }
     }
     
 }

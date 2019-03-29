@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.paint.Paint;
@@ -33,23 +34,17 @@ import javafx.stage.Stage;
  * @author Heraclito
  */
 public class Menu {
-    ArrayList<Button> allRooms;
-    ArrayList<Label> allUsers;
     ArrayList<ChatRoom> myChatRooms;
-    ArrayList<Button> myRooms;
     VBox roomsBox;
     VBox myRoomsBox;
     VBox usersBox;
-    Stage stage;
+    public Stage stage;
     DataOutputStream outSocket;
     public Menu(Stage stage, DataOutputStream outSocket)
     {
         this.stage = stage;
         this.outSocket = outSocket;
         myChatRooms = new ArrayList<>();
-        myRooms = new ArrayList<>();
-        allRooms = new ArrayList<>();
-        allUsers = new ArrayList<>();
         roomsBox = new VBox();
         myRoomsBox = new VBox();
         usersBox = new VBox();
@@ -59,7 +54,6 @@ public class Menu {
     {
         Button btn = new Button(roomName);
         btn.setId(roomName);
-        allRooms.add(btn);
         HBox hb = new HBox();
         hb.setId(roomName);
         hb.setPadding(new Insets(10, 10, 10, 10));
@@ -75,7 +69,6 @@ public class Menu {
         l.setTextFill(Paint.valueOf("black"));
         l.setStyle("-fx-font-weight: bold;");
         l.setAlignment(Pos.CENTER_LEFT);
-        allUsers.add(l);
         HBox hb = new HBox();
         hb.setId(userName);
         hb.setPadding(new Insets(10, 10, 10, 10));
@@ -84,21 +77,27 @@ public class Menu {
         hb.getChildren().add(l);
         usersBox.getChildren().add(hb);
     }
+    
     public void addMyRoom(ChatRoom cr)
     {
         myChatRooms.add(cr);
         Button btn = new Button(cr.getName());
         btn.setId(cr.getName());
         btn.setOnAction(openChatRoom(cr.getName()));
-        myRooms.add(btn);
         myRoomsBox.getChildren().add(btn);
     }
     
-    private void updateMyRooms()
+    public void leaveRoom(String roomName)
     {
-        myRoomsBox.getChildren().clear();
-        for(int i = 0; i < myChatRooms.size(); i++)
-            myRoomsBox.getChildren().add(myRooms.get(i));
+        myChatRooms.remove(getChatRoombyName(roomName));
+        for(Node room : myRoomsBox.getChildren())
+        {
+            if(room.getId().equals(roomName))
+            {
+                myRoomsBox.getChildren().remove(room);
+                break;
+            }
+        }
     }
     
     private EventHandler openChatRoom(String roomName)
@@ -109,6 +108,7 @@ public class Menu {
             public void handle(ActionEvent event) 
             {
                 ChatRoom openCR = getChatRoombyName(((Button)event.getSource()).getId());
+                stage.setTitle(openCR.getName());
                 stage.setScene(openCR.chatScene());
                 stage.show();
             }
@@ -190,7 +190,8 @@ public class Menu {
         return null;
     }
     
-    public EventHandler createChatRoom(){
+    public EventHandler createChatRoom()
+    {
         EventHandler event = new EventHandler<ActionEvent>()
         {
             @Override
@@ -211,7 +212,10 @@ public class Menu {
                             } catch (IOException ex) {
                                 Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                            addMyRoom(new ChatRoom(name.getText(), outSocket));
+                            ChatRoom newCR = new ChatRoom(name.getText(), outSocket);
+                            newCR.setAdmin(true);
+                            newCR.updateMembers(nickname);
+                            addMyRoom(newCR);
                             stage.setTitle("Menu");
                             stage.setScene(menuScene());
                             stage.show();
