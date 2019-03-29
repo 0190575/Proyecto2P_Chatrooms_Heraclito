@@ -19,6 +19,7 @@ import javafx.scene.layout.VBox;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
@@ -27,6 +28,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 /**
@@ -54,6 +57,19 @@ public class Menu {
     {
         Button btn = new Button(roomName);
         btn.setId(roomName);
+        btn.setOnAction(new EventHandler<ActionEvent>() 
+        {
+            @Override
+            public void handle(ActionEvent event) 
+            {
+                try {
+                    outSocket.writeInt(103);
+                    outSocket.writeUTF(((Button)event.getSource()).getId());
+                } catch (IOException ex) {
+                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         HBox hb = new HBox();
         hb.setId(roomName);
         hb.setPadding(new Insets(10, 10, 10, 10));
@@ -239,5 +255,25 @@ public class Menu {
         };
         
         return event;
+    }
+    
+    public void joinRequest(String user, String room)
+    {
+        try {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Joining request");
+            alert.setHeaderText(user + " wants to join " + room);
+            ButtonType okButton = new ButtonType("Accept", ButtonBar.ButtonData.YES);
+            ButtonType noButton = new ButtonType("Reject", ButtonBar.ButtonData.NO);
+            alert.getButtonTypes().setAll(okButton, noButton);
+            Boolean response = alert.showAndWait().get().getButtonData() == ButtonBar.ButtonData.YES;
+            outSocket.writeInt(109);
+            outSocket.writeUTF(room);
+            outSocket.writeUTF(user);
+            outSocket.writeBoolean(response);
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

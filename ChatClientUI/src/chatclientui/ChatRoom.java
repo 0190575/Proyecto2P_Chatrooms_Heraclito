@@ -51,6 +51,23 @@ public class ChatRoom {
         return name;
     }
     
+    public void getNotification(String notification, Boolean alert)
+    {
+        Label l = new Label(notification);
+        if(alert)
+            l.setTextFill(Paint.valueOf("RED"));
+        else
+            l.setTextFill(Paint.valueOf("GOLD"));
+        l.setStyle("-fx-font-weight: bold;");
+        l.setAlignment(Pos.CENTER);
+        HBox hb = new HBox();
+        hb.setPadding(new Insets(5, 10, 5, 10));
+        hb.setAlignment(Pos.CENTER);
+        hb.autosize();
+        hb.getChildren().add(l);
+        messages.getChildren().add(hb);
+    }
+    
     public void updateMessages(String message)
     {
         Label l = new Label(message);
@@ -67,8 +84,8 @@ public class ChatRoom {
     
     public void myMessage(String message)
     {
-        Label l = new Label(message);
-        l.setTextFill(Paint.valueOf("red"));
+        Label l = new Label("You:" + message);
+        l.setTextFill(Paint.valueOf("LIGHTSEAGREEN"));
         l.setStyle("-fx-font-weight: bold;");
         l.setAlignment(Pos.CENTER_RIGHT);
         HBox hb = new HBox();

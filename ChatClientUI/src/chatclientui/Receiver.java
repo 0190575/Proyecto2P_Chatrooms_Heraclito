@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
@@ -78,10 +81,29 @@ public class Receiver implements Runnable{
             }
             case 12: // Respuesta de union a sala
             {
-                String s = inSocket.readUTF();
+                if(inSocket.readBoolean())
+                {
+                    String s = inSocket.readUTF();
+                    int n = inSocket.readInt();
+                    ChatRoom cr = new ChatRoom(s, menu.outSocket);
+                    for(int i = 0; i < n; i++)
+                        cr.updateMembers(inSocket.readUTF());
+                    Platform.runLater(() -> {
+                        menu.addMyRoom(cr);
+                    });
+                }
+                else
+                {
+                    String s = inSocket.readUTF();
+                    
+                    
                 Platform.runLater(() -> {
-                    menu.addMyRoom(new ChatRoom(s, menu.outSocket));
-                });
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Join request");
+                    alert.setHeaderText("Your request to join " + s + " has been rejected by its admin");
+                    alert.showAndWait();
+                    });
+                }
                 break;
             }
             case 13:
@@ -97,8 +119,15 @@ public class Receiver implements Runnable{
                 });
                 break;
             }
-            case 15:
+            case 15: //Peticion de entrada a sala
             {
+                String user = inSocket.readUTF();
+                String room = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    
+                    menu.joinRequest(user, room);
+                    });
+                
                 break;
             }
             case 16:
@@ -110,6 +139,7 @@ public class Receiver implements Runnable{
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 String member = inSocket.readUTF();
                 Platform.runLater(() -> {
+                    cr.getNotification(member + " has left the room", true);
                     cr.deleteMember(member);
                 });
                 break;
@@ -119,6 +149,7 @@ public class Receiver implements Runnable{
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 String user = inSocket.readUTF();
                 Platform.runLater(() -> {
+                    cr.getNotification(user + " has joined the room", false);
                     cr.updateMembers(user);
                 });
                 break;

@@ -115,23 +115,9 @@ public class UserThread implements Runnable {
             {
                 Room cr = findRoom(inSocket.readUTF());
                 if(cr != null){
-                    cr.addMember(this);
-                    outSocket.writeInt(12);
-                    outSocket.writeUTF(cr.name);
-                    for(int i = 0; i < cr.members.size(); i++)
-                    {
-                        if(!cr.members.get(i).equals(this))
-                        {
-                            try {
-                                cr.members.get(i).outSocket.writeInt(18);
-                                cr.members.get(i).outSocket.writeUTF(cr.name);
-                                cr.members.get(i).outSocket.writeUTF(name);
-                            } catch (IOException ex) {
-                                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
-
-                    }
+                    cr.admin.outSocket.writeInt(15);
+                    cr.admin.outSocket.writeUTF(name);
+                    cr.admin.outSocket.writeUTF(cr.name);
                 }
                 break;
             }
@@ -173,8 +159,38 @@ public class UserThread implements Runnable {
                     cr.sendMessage(inSocket.readUTF(), this);
                 break;
             }
-            case 108:
+            case 108: 
             {
+                break;
+            }
+            case 109: //Respuesta de solicitud de entrada
+            {
+                Room cr = findRoom(inSocket.readUTF());
+                UserThread newMember = findUser(inSocket.readUTF());
+                Boolean response = cr.admin.inSocket.readBoolean();
+                newMember.outSocket.writeInt(12);
+                newMember.outSocket.writeBoolean(response);
+                newMember.outSocket.writeUTF(cr.name);
+                if(response)
+                {
+                    cr.addMember(newMember);
+                    newMember.outSocket.writeInt(cr.members.size());
+                    for(int i = 0; i < cr.members.size(); i++)
+                    {
+                        newMember.outSocket.writeUTF(cr.members.get(i).name);
+                        if(!cr.members.get(i).equals(newMember))
+                        {
+                            try {
+                                cr.members.get(i).outSocket.writeInt(18);
+                                cr.members.get(i).outSocket.writeUTF(cr.name);
+                                cr.members.get(i).outSocket.writeUTF(newMember.name);
+                            } catch (IOException ex) {
+                                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+
+                    }
+                }
                 break;
             }
            
@@ -187,6 +203,16 @@ public class UserThread implements Runnable {
         {
             if(activeRooms.get(i).name.equals(roomName))
                 return activeRooms.get(i);
+        }
+        return null;
+    }
+    
+    private UserThread findUser(String userName)
+    {
+        for(int i = 0; i < connectedUsers.size(); i++)
+        {
+            if(connectedUsers.get(i).name.equals(userName))
+                return connectedUsers.get(i);
         }
         return null;
     }
