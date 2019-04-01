@@ -95,19 +95,31 @@ public class Receiver implements Runnable{
                 else
                 {
                     String s = inSocket.readUTF();
-                    
-                    
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Join request");
-                    alert.setHeaderText("Your request to join " + s + " has been rejected by its admin");
-                    alert.showAndWait();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Join request");
+                        alert.setHeaderText("Your request to join " + s + " has been rejected by its admin");
+                        alert.showAndWait();
                     });
                 }
                 break;
             }
-            case 13:
+            case 13: //Eliminado de sala
             {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Deleted room");
+                        alert.setHeaderText(cr.getName() + "has been deleted by its admin");
+                        if(menu.stage.getTitle().equals(cr.getName()))
+                        {
+                            menu.stage.setTitle("Menu");
+                            menu.stage.setScene(menu.menuScene());
+                            menu.stage.show();
+                        }
+                        alert.showAndWait();
+                        menu.leaveRoom(cr.getName());
+                    });
                 break;
             }
             case 14: //Mensaje
@@ -115,6 +127,11 @@ public class Receiver implements Runnable{
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 String msg = inSocket.readUTF();
                 Platform.runLater(() -> {
+                    if(!cr.getName().equals(menu.stage.getTitle()))
+                    {
+                        ChatRoom activeRoom = menu.getChatRoombyName(menu.stage.getTitle());
+                        activeRoom.alertNewMessages(true);
+                    }
                     cr.updateMessages(msg);
                 });
                 break;
@@ -124,14 +141,21 @@ public class Receiver implements Runnable{
                 String user = inSocket.readUTF();
                 String room = inSocket.readUTF();
                 Platform.runLater(() -> {
-                    
                     menu.joinRequest(user, room);
                     });
                 
                 break;
             }
-            case 16:
+            case 16: //Admin privileges
             {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                cr.setAdmin(true);
+                Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Admin privileges");
+                        alert.setHeaderText("Now you are " + cr.getName() + "'s admin");
+                        alert.showAndWait();
+                    });
                 break;
             }
             case 17: //Usuario sale de sala
@@ -156,6 +180,31 @@ public class Receiver implements Runnable{
             }
             case 19:
             {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Deleted from room");
+                        alert.setHeaderText("You have been deleted from " + cr.getName());
+                        if(menu.stage.getTitle().equals(cr.getName()))
+                        {
+                            menu.stage.setTitle("Menu");
+                            menu.stage.setScene(menu.menuScene());
+                            menu.stage.show();
+                        }
+                        alert.showAndWait();
+                        menu.leaveRoom(cr.getName());
+                    });
+                
+                break;
+            }
+            case 20:
+            {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                String member = inSocket.readUTF();
+                Platform.runLater(() -> {
+                    cr.getNotification(member + " has been deleted", true);
+                    cr.deleteMember(member);
+                });
                 break;
             }
             default:

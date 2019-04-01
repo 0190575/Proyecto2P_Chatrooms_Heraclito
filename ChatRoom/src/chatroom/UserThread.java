@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static chatroom.ChatRoom.connectedUsers;
 import static chatroom.ChatRoom.activeRooms;
+import java.util.Random;
 
 /**
  *
@@ -35,18 +36,11 @@ public class UserThread implements Runnable {
     @Override
     public void run() {
          try {
-            //outSocket.writeUTF("Hello " + name);
-            //String msg = inSocket.readUTF();
-            //sendMessage(msg);
             while(true)
             {
-                    int code = inSocket.readInt();
-                    System.out.println(code);
-                    selectAction(code);
-                    //System.out.println(msg);
-                   // outSocket.writeUTF(msg);
-                
-                
+                int code = inSocket.readInt();
+                System.out.println(code);
+                selectAction(code);
             }
             
          } catch (IOException ex) {
@@ -59,16 +53,16 @@ public class UserThread implements Runnable {
     
     public void sendMessage(String mess)
     {
-            for(int i = 0; i < connectedUsers.size(); i++)
-            {
-                if(!connectedUsers.get(i).equals(this))
-                try {
-                    connectedUsers.get(i).outSocket.writeInt(14);
-                    connectedUsers.get(i).outSocket.writeUTF(mess);
-                } catch (IOException ex) {
-                    Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        for(int i = 0; i < connectedUsers.size(); i++)
+        {
+            if(!connectedUsers.get(i).equals(this))
+            try {
+                connectedUsers.get(i).outSocket.writeInt(14);
+                connectedUsers.get(i).outSocket.writeUTF(mess);
+            } catch (IOException ex) {
+                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
     }
     
     public void newUser()
@@ -126,7 +120,17 @@ public class UserThread implements Runnable {
                 Room cr = findRoom(inSocket.readUTF());
                 if(cr != null)
                 {
+                    Boolean isAdmin = cr.admin.equals(this);
                     cr.removeMember(this);
+                    if(isAdmin)
+                    {
+                        cr.admin = null;
+                        cr.admin = cr.members.get(new Random().nextInt(cr.members.size()));
+                        System.out.println(cr.admin.name);
+                        cr.admin.outSocket.writeInt(16);
+                        cr.admin.outSocket.writeUTF(cr.name);
+                    }
+                    
                     for(int i = 0; i < cr.members.size(); i++)
                     {
                         if(!cr.members.get(i).equals(this))
@@ -159,8 +163,23 @@ public class UserThread implements Runnable {
                     cr.sendMessage(inSocket.readUTF(), this);
                 break;
             }
-            case 108: 
+            case 108: //Eliminar usuario de sala
             {
+                Room cr = findRoom(inSocket.readUTF());
+                UserThread member = findUser(inSocket.readUTF());
+                cr.removeMember(member);
+                member.outSocket.writeInt(13);
+                member.outSocket.writeUTF(cr.name);
+                for(int i = 0; i < cr.members.size(); i++)
+                   {
+                        try {
+                            cr.members.get(i).outSocket.writeInt(20);
+                            cr.members.get(i).outSocket.writeUTF(cr.name);
+                            cr.members.get(i).outSocket.writeUTF(member.name);
+                        } catch (IOException ex) {
+                            Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                   }
                 break;
             }
             case 109: //Respuesta de solicitud de entrada

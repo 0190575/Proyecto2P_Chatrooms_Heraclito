@@ -5,7 +5,6 @@
  */
 package chatroom;
 
-import static chatroom.ChatRoom.connectedUsers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;

@@ -23,9 +23,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import static chatclientui.ChatClientUI.menu;
 import static chatclientui.ChatClientUI.nickname;
+import java.awt.Rectangle;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
 /**
  *
@@ -36,6 +45,7 @@ public class ChatRoom {
     //ArrayList<Button> members;
     public VBox messages;
     public VBox members;
+    private Label newMessages;
     private Boolean admin;
     private String name;
     DataOutputStream outSocket;
@@ -45,6 +55,13 @@ public class ChatRoom {
         messages = new VBox();
         members = new VBox();
         admin = false;
+        
+        newMessages = new Label();
+        newMessages.setTextFill(Paint.valueOf("black"));
+        newMessages.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY)));
+        newMessages.setText("New messages");
+        newMessages.setStyle("-fx-font-weight: bold");
+        newMessages.setAlignment(Pos.CENTER_RIGHT);
     }
 
     public String getName() {
@@ -98,12 +115,37 @@ public class ChatRoom {
     
     public void updateMembers(String memberName)
     {
-        Label l = new Label(memberName);
+        Button l = new Button(memberName);
         if(getAdmin() && memberName.equals(nickname))
             l.setText(memberName + " (admin)");
         l.setTextFill(Paint.valueOf("black"));
         l.setStyle("-fx-font-weight: bold;");
         l.setAlignment(Pos.CENTER_LEFT);
+        l.setOnAction(new EventHandler<ActionEvent>() 
+        {
+            @Override
+            public void handle(ActionEvent event) 
+            {
+                if(getAdmin())
+                {
+                    try {
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("Delete user");
+                        alert.setHeaderText("Do you want to delete " + memberName + " from " + getName() + "?");
+                        ButtonType okButton = new ButtonType("Delete", ButtonBar.ButtonData.YES);
+                        ButtonType noButton = new ButtonType("Cancel", ButtonBar.ButtonData.NO);
+                        alert.getButtonTypes().setAll(okButton, noButton);
+                        Boolean response = alert.showAndWait().get().getButtonData() == ButtonBar.ButtonData.YES;
+                        outSocket.writeInt(108);
+                        outSocket.writeUTF(getName());
+                        outSocket.writeUTF(memberName);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        });
+        
         HBox hb = new HBox();
         hb.setId(memberName);
         hb.setPadding(new Insets(10, 10, 10, 10));
@@ -137,11 +179,23 @@ public class ChatRoom {
         membersPane.setPrefSize(200, 350);
         membersPane.setContent(members);
         
+        VBox membersBox = new VBox();
+        membersBox.setPadding(new Insets(10, 10, 10, 10));
+        membersBox.setSpacing(10);
+        membersBox.getChildren().add(new Label("Room members"));
+        membersBox.getChildren().add(membersPane);
+        
+        VBox msgBox = new VBox();
+        msgBox.setPadding(new Insets(10, 10, 10, 10));
+        msgBox.setSpacing(10);
+        msgBox.getChildren().add(new Label("Messages"));
+        msgBox.getChildren().add(msgPane);
+        
         HBox hb = new HBox();
         hb.setPadding(new Insets(15, 15, 15, 15));
         hb.setSpacing(10);
-        hb.getChildren().add(membersPane);
-        hb.getChildren().add(msgPane);
+        hb.getChildren().add(membersBox);
+        hb.getChildren().add(msgBox);
         
         TextField message = new TextField();
         message.setOnKeyPressed(sendMessage());
@@ -152,6 +206,7 @@ public class ChatRoom {
             @Override
             public void handle(ActionEvent event) 
             {
+                alertNewMessages(false);
                 menu.stage.setTitle("Menu");
                 menu.stage.setScene(menu.menuScene());
                 menu.stage.show();
@@ -187,9 +242,14 @@ public class ChatRoom {
         bttns.getChildren().add(menuBtn);
         bttns.getChildren().add(leaveBtn);
         
+        StackPane header = new StackPane();
+        header.setAlignment(Pos.CENTER_RIGHT);
+        header.getChildren().add(newMessages);
+               
         VBox vb = new VBox();
         vb.setPadding(new Insets(15, 15, 15, 15));
         vb.setSpacing(10);
+        vb.getChildren().add(header);
         vb.getChildren().add(hb);
         vb.getChildren().add(message);
         vb.getChildren().add(bttns);
@@ -231,6 +291,13 @@ public class ChatRoom {
     public void setAdmin(Boolean admin) {
         this.admin = admin;
     }
-    
-    
+
+    public void alertNewMessages(Boolean nm)
+    {
+        if(nm)        
+            newMessages.setVisible(true);        
+        else
+            newMessages.setVisible(false);
+    }
+
 }

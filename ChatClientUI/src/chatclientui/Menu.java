@@ -43,6 +43,7 @@ public class Menu {
     VBox usersBox;
     public Stage stage;
     DataOutputStream outSocket;
+    
     public Menu(Stage stage, DataOutputStream outSocket)
     {
         this.stage = stage;
@@ -133,6 +134,7 @@ public class Menu {
         
         return event;
     }
+    
     public Scene menuScene()
     {
         Label headerLab = new Label("Welcome " + nickname);
