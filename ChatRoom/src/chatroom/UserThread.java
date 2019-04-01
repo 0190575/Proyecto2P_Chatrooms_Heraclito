@@ -65,11 +65,6 @@ public class UserThread implements Runnable {
         }
     }
     
-    public void newUser()
-    {
-        
-    }
-    
     private void selectAction(int action) throws IOException
     {
         switch(action)
@@ -148,8 +143,29 @@ public class UserThread implements Runnable {
                 }
                 break;
             }
-            case 105: 
+            case 105: //Admin agrega usuario
             {
+                Room cr = findRoom(inSocket.readUTF());
+                UserThread newMember = findUser(inSocket.readUTF());
+                newMember.outSocket.writeInt(21);
+                newMember.outSocket.writeUTF(cr.name);
+                cr.addMember(newMember);
+                newMember.outSocket.writeInt(cr.members.size());
+                for(int i = 0; i < cr.members.size(); i++)
+                {
+                    newMember.outSocket.writeUTF(cr.members.get(i).name);
+                    if(!cr.members.get(i).equals(newMember))
+                    {
+                        try {
+                            cr.members.get(i).outSocket.writeInt(18);
+                            cr.members.get(i).outSocket.writeUTF(cr.name);
+                            cr.members.get(i).outSocket.writeUTF(newMember.name);
+                        } catch (IOException ex) {
+                            Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+
+                }
                 break;
             }
             case 106:
@@ -212,7 +228,10 @@ public class UserThread implements Runnable {
                 }
                 break;
             }
-           
+            case 110: //Desconexion de usuario
+            {
+                break;
+            }
         }
     }
     

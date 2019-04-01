@@ -26,6 +26,7 @@ import static chatclientui.ChatClientUI.nickname;
 import java.awt.Rectangle;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -62,6 +63,7 @@ public class ChatRoom {
         newMessages.setText("New messages");
         newMessages.setStyle("-fx-font-weight: bold");
         newMessages.setAlignment(Pos.CENTER_RIGHT);
+        newMessages.setVisible(false);
     }
 
     public String getName() {
@@ -236,11 +238,16 @@ public class ChatRoom {
             //});
             }
         });
+        
+        Button addBtn = new Button("Add user");
+        addBtn.setOnAction(addMember());
+        
         HBox bttns = new HBox();
         bttns.setPadding(new Insets(15, 15, 15, 15));
         bttns.setSpacing(100);
         bttns.getChildren().add(menuBtn);
         bttns.getChildren().add(leaveBtn);
+        bttns.getChildren().add(addBtn);
         
         StackPane header = new StackPane();
         header.setAlignment(Pos.CENTER_RIGHT);
@@ -300,4 +307,97 @@ public class ChatRoom {
             newMessages.setVisible(false);
     }
 
+    public EventHandler addMember()
+    {
+        EventHandler event = new EventHandler<ActionEvent>()
+        {
+            @Override
+            public void handle(ActionEvent event) 
+            {
+                ScrollPane sp = new ScrollPane();
+                VBox vb = new VBox();
+                menu.getConnectedUsers().getChildren().forEach((user) -> {
+                    if(!isMember(user.getId()))
+                    {
+                        Button btn = new Button();
+                        btn.setText(user.getId());
+                        btn.setId(user.getId());
+                        btn.setOnAction(new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent event) {
+                                
+                                try {
+                                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                                    alert.setTitle("Add user");
+                                    alert.setHeaderText("Do you want to add " + ((Button)event.getSource()).getId() + " to " + getName() + "?");
+                                    ButtonType okButton = new ButtonType("Add", ButtonBar.ButtonData.YES);
+                                    ButtonType noButton = new ButtonType("Cancel", ButtonBar.ButtonData.NO);
+                                    alert.getButtonTypes().setAll(okButton, noButton);
+                                    Boolean response = alert.showAndWait().get().getButtonData() == ButtonBar.ButtonData.YES;
+                                    if(response)
+                                    {
+                                        outSocket.writeInt(105);
+                                        outSocket.writeUTF(getName());
+                                        outSocket.writeUTF(((Button)event.getSource()).getId());
+                                        menu.stage.setTitle(getName());
+                                        menu.stage.setScene(chatScene());
+                                        menu.stage.show();
+                                    }
+                                    
+                                } catch (IOException ex) {
+                                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                            
+                        });
+                        vb.getChildren().add(btn);
+                    }
+                    
+                });
+                
+                Button cancelBtn = new Button("Cancel");
+                cancelBtn.setOnAction(new EventHandler<ActionEvent>() 
+                {
+                    @Override
+                    public void handle(ActionEvent event) 
+                    {
+                        menu.stage.setTitle(getName());
+                        menu.stage.setScene(chatScene());
+                        menu.stage.show();
+                    }
+                });
+                
+                vb.setPadding(new Insets(15, 15, 15, 15));
+                vb.setSpacing(10);
+                sp.setContent(vb);
+                
+                StackPane root = new StackPane();
+                root.getChildren().add(cancelBtn);
+                
+                VBox vb2 = new VBox();
+                vb2.setPadding(new Insets(15, 15, 15, 15));
+                vb2.setSpacing(10);
+                vb2.getChildren().add(sp);
+                vb2.getChildren().add(root);
+                
+                Scene scene = new Scene(vb2, 300, 400);
+                menu.stage.setTitle("Add User");
+                menu.stage.setScene(scene);
+                menu.stage.show();
+            }
+             
+        };
+        
+        return event;
+    }
+    
+    private Boolean isMember(String memberName)
+    {
+        for(Node member : members.getChildren())
+        {
+            if(memberName.equals(member.getId()))
+                return true;
+        }
+        return false;
+    }
 }

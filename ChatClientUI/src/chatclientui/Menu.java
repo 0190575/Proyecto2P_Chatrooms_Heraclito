@@ -278,4 +278,9 @@ public class Menu {
             Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public VBox getConnectedUsers()
+    {
+        return usersBox;
+    }
 }

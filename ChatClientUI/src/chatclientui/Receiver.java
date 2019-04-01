@@ -104,7 +104,7 @@ public class Receiver implements Runnable{
                 }
                 break;
             }
-            case 13: //Eliminado de sala
+            case 13: //Sala eliminada por admin
             {
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 Platform.runLater(() -> {
@@ -178,7 +178,7 @@ public class Receiver implements Runnable{
                 });
                 break;
             }
-            case 19:
+            case 19: //Usuario elminado por admin
             {
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 Platform.runLater(() -> {
@@ -197,13 +197,25 @@ public class Receiver implements Runnable{
                 
                 break;
             }
-            case 20:
+            case 20: //Notificacion de otro usuario eliminado
             {
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 String member = inSocket.readUTF();
                 Platform.runLater(() -> {
                     cr.getNotification(member + " has been deleted", true);
                     cr.deleteMember(member);
+                });
+                break;
+            }
+            case 21: //Usuario agregado por admin
+            {
+                String s = inSocket.readUTF();
+                int n = inSocket.readInt();
+                ChatRoom cr = new ChatRoom(s, menu.outSocket);
+                for(int i = 0; i < n; i++)
+                    cr.updateMembers(inSocket.readUTF());
+                Platform.runLater(() -> {
+                    menu.addMyRoom(cr);
                 });
                 break;
             }

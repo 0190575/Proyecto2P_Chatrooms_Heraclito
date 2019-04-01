@@ -38,6 +38,7 @@ public class ChatClient
       System.out.println("5. Reject join request");
       System.out.println("6. Accept join request");
       System.out.println("7. Delete user from room");
+      System.out.println("8. Add user to room");
       action(scan.nextInt());
 
     } while (true);
@@ -114,6 +115,14 @@ public class ChatClient
       String s = scan.nextLine();
       String m = scan.nextLine();
       outSocket.writeInt(108);
+      outSocket.writeUTF(s);
+      outSocket.writeUTF(m);
+    }
+    if(code == 8)
+    {
+      String s = scan.nextLine();
+      String m = scan.nextLine();
+      outSocket.writeInt(105);
       outSocket.writeUTF(s);
       outSocket.writeUTF(m);
     }
