@@ -64,11 +64,9 @@ public class ChatClientUI extends Application {
                 
                 try
                 {
-
-                socket = new Socket(ip.getText(), 5000);
-                inSocket = new DataInputStream(socket.getInputStream());
-                outSocket = new DataOutputStream(socket.getOutputStream());
-
+                    socket = new Socket(ip.getText(), 5000);
+                    inSocket = new DataInputStream(socket.getInputStream());
+                    outSocket = new DataOutputStream(socket.getOutputStream());
                 }
                 catch(Exception ex){
                   System.out.println("You must first start the server socket");

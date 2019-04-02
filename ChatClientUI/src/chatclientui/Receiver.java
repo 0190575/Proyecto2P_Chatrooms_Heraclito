@@ -10,16 +10,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
 
 /**
  *
@@ -43,15 +34,6 @@ public class Receiver implements Runnable{
             try {
                 code = inSocket.readInt();
                 selectAction(code);
-//                Platform.runLater(() -> {
-//                    try {
-//                        //
-//                        selectAction(code);
-////                      updateMessages(msg);
-//                    } catch (IOException ex) {
-//                        Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                    });
                 
             } catch (IOException ex) {
                 Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -110,7 +92,7 @@ public class Receiver implements Runnable{
                 Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Deleted room");
-                        alert.setHeaderText(cr.getName() + "has been deleted by its admin");
+                        alert.setHeaderText(cr.getName() + " has been deleted by its admin");
                         if(menu.stage.getTitle().equals(cr.getName()))
                         {
                             menu.stage.setTitle("Menu");

@@ -168,7 +168,7 @@ public class UserThread implements Runnable {
                 }
                 break;
             }
-            case 106:
+            case 106:// Sala eliminada por admin
             {
                 break;
             }
@@ -184,7 +184,7 @@ public class UserThread implements Runnable {
                 Room cr = findRoom(inSocket.readUTF());
                 UserThread member = findUser(inSocket.readUTF());
                 cr.removeMember(member);
-                member.outSocket.writeInt(13);
+                member.outSocket.writeInt(19);
                 member.outSocket.writeUTF(cr.name);
                 for(int i = 0; i < cr.members.size(); i++)
                    {

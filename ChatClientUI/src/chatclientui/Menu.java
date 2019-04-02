@@ -69,6 +69,7 @@ public class Menu {
                 } catch (IOException ex) {
                     Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                
             }
         });
         HBox hb = new HBox();
@@ -79,6 +80,7 @@ public class Menu {
         hb.getChildren().add(btn);
         roomsBox.getChildren().add(hb);
     }
+    
     public void addUser(String userName)
     {
         Label l = new Label(userName);
