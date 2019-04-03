@@ -253,21 +253,23 @@ public class ChatRoom {
             @Override
             public void handle(ActionEvent event) 
             {
-                try {
-                    outSocket.writeInt(106);
-                    outSocket.writeUTF(name);
-                    
-                } catch (IOException ex) {
-                    Logger.getLogger(ChatRoom.class.getName()).log(Level.SEVERE, null, ex);
+                if(admin)
+                {
+                    try {
+                        outSocket.writeInt(106);
+                        outSocket.writeUTF(name);
+
+                    } catch (IOException ex) {
+                        Logger.getLogger(ChatRoom.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    System.out.println(((Button)event.getSource()).getId());
+                    menu.stage.setTitle("Menu");
+                    menu.stage.setScene(menu.menuScene());
+                    menu.stage.show();
+                    //Platform.runLater(()->{
+                    menu.leaveRoom(name);
+                    menu.removeRoom(name);
                 }
-                System.out.println(((Button)event.getSource()).getId());
-                menu.stage.setTitle("Menu");
-                menu.stage.setScene(menu.menuScene());
-                menu.stage.show();
-                //Platform.runLater(()->{
-                menu.leaveRoom(name);
-                menu.removeRoom(name);
-            //});
             }
         });
         
