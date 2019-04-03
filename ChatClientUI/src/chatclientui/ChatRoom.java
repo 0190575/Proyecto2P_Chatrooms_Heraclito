@@ -138,9 +138,13 @@ public class ChatRoom {
                         ButtonType noButton = new ButtonType("Cancel", ButtonBar.ButtonData.NO);
                         alert.getButtonTypes().setAll(okButton, noButton);
                         Boolean response = alert.showAndWait().get().getButtonData() == ButtonBar.ButtonData.YES;
-                        outSocket.writeInt(108);
-                        outSocket.writeUTF(getName());
-                        outSocket.writeUTF(memberName);
+                        if(response)
+                        {
+                            outSocket.writeInt(108);
+                            outSocket.writeUTF(getName());
+                            outSocket.writeUTF(memberName);
+                        }
+                        
                     } catch (IOException ex) {
                         Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -242,12 +246,38 @@ public class ChatRoom {
         Button addBtn = new Button("Add user");
         addBtn.setOnAction(addMember());
         
+        Button deleteBtn = new Button("Delete room");
+        deleteBtn.setId(name);
+        deleteBtn.setOnAction(new EventHandler<ActionEvent>() 
+        {
+            @Override
+            public void handle(ActionEvent event) 
+            {
+                try {
+                    outSocket.writeInt(106);
+                    outSocket.writeUTF(name);
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(ChatRoom.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                System.out.println(((Button)event.getSource()).getId());
+                menu.stage.setTitle("Menu");
+                menu.stage.setScene(menu.menuScene());
+                menu.stage.show();
+                //Platform.runLater(()->{
+                menu.leaveRoom(name);
+                menu.removeRoom(name);
+            //});
+            }
+        });
+        
         HBox bttns = new HBox();
         bttns.setPadding(new Insets(15, 15, 15, 15));
         bttns.setSpacing(100);
         bttns.getChildren().add(menuBtn);
         bttns.getChildren().add(leaveBtn);
         bttns.getChildren().add(addBtn);
+        bttns.getChildren().add(deleteBtn);
         
         StackPane header = new StackPane();
         header.setAlignment(Pos.CENTER_RIGHT);

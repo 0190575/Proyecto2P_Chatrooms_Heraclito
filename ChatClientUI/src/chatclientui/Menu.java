@@ -97,6 +97,30 @@ public class Menu {
         usersBox.getChildren().add(hb);
     }
     
+    public void removeUser(String userName)
+    {
+        for(Node user: usersBox.getChildren())
+        {
+            if(user.getId().equals(userName))
+            {
+                usersBox.getChildren().remove(user);
+                break;
+            }
+        }
+    }
+    
+    public void removeRoom(String roomName)
+    {
+        for(Node room: roomsBox.getChildren())
+        {
+            if(room.getId().equals(roomName))
+            {
+                roomsBox.getChildren().remove(room);
+                break;
+            }
+        }
+    }
+    
     public void addMyRoom(ChatRoom cr)
     {
         myChatRooms.add(cr);
@@ -226,16 +250,26 @@ public class Menu {
                     public void handle(ActionEvent event) {
                         if(!name.getText().equals(""))
                         {
-                            try {
-                                outSocket.writeInt(102);
-                                outSocket.writeUTF(name.getText());
-                            } catch (IOException ex) {
-                                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                            if(!roomExists(name.getText()))
+                            {
+                                try {
+                                    outSocket.writeInt(102);
+                                    outSocket.writeUTF(name.getText());
+                                } catch (IOException ex) {
+                                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                ChatRoom newCR = new ChatRoom(name.getText(), outSocket);
+                                newCR.setAdmin(true);
+                                newCR.updateMembers(nickname);
+                                addMyRoom(newCR);
                             }
-                            ChatRoom newCR = new ChatRoom(name.getText(), outSocket);
-                            newCR.setAdmin(true);
-                            newCR.updateMembers(nickname);
-                            addMyRoom(newCR);
+                            else
+                            {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Room name in use");
+                                alert.setHeaderText("There's another room registered inder this name, please try again");
+                                alert.showAndWait();
+                            }
                             stage.setTitle("Menu");
                             stage.setScene(menuScene());
                             stage.show();
@@ -284,5 +318,15 @@ public class Menu {
     public VBox getConnectedUsers()
     {
         return usersBox;
+    }
+    
+    private Boolean roomExists(String roomName)
+    {
+        for(Node room: roomsBox.getChildren())
+        {
+            if(room.getId().equals(roomName))
+                return true;
+        }
+        return false;
     }
 }

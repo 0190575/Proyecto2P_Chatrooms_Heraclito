@@ -20,10 +20,11 @@ public class Receiver implements Runnable{
     
     public DataInputStream inSocket;
     Menu menu;
-
+    private Boolean closing;
     public Receiver(DataInputStream inSocket, Menu menu) {
         this.inSocket = inSocket;
         this.menu = menu;
+        closing = false;
     }
     
     @Override
@@ -34,11 +35,10 @@ public class Receiver implements Runnable{
             try {
                 code = inSocket.readInt();
                 selectAction(code);
-                
             } catch (IOException ex) {
-                Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                break;
             }
-        } while (true);
+        } while (!closing);
     }
     
     private void selectAction(int action) throws IOException
@@ -109,7 +109,7 @@ public class Receiver implements Runnable{
                 ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
                 String msg = inSocket.readUTF();
                 Platform.runLater(() -> {
-                    if(!cr.getName().equals(menu.stage.getTitle()))
+                    if(!cr.getName().equals(menu.stage.getTitle()) && !menu.stage.getTitle().equals("Menu"))
                     {
                         ChatRoom activeRoom = menu.getChatRoombyName(menu.stage.getTitle());
                         activeRoom.alertNewMessages(true);
@@ -201,21 +201,43 @@ public class Receiver implements Runnable{
                 });
                 break;
             }
+            case 22:
+            {
+                String s = inSocket.readUTF();
+                Platform.runLater(() -> {
+                menu.removeUser(s);
+                });
+                break;
+            }
+            case 23: //Sala eliminada por admin
+            {
+                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Room deleted");
+                    alert.setHeaderText(cr.getName() + " has been deleted by its admin");
+                    if(menu.stage.getTitle().equals(cr.getName()))
+                    {
+                        menu.stage.setTitle("Menu");
+                        menu.stage.setScene(menu.menuScene());
+                        menu.stage.show();
+                    }
+                    alert.showAndWait();
+                    menu.leaveRoom(cr.getName());
+                    menu.removeRoom(cr.getName());
+                });
+                
+                break;
+            }
             default:
             {
                 break;
             }
         }
     }
-//    public void updateMessages(String message)
-//    {
-//        Label l = new Label(message);
-//        l.setTextFill(Paint.valueOf("blue"));
-//        l.setStyle("-fx-font-weight: bold;");
-//        HBox hb = new HBox();
-//        hb.setPadding(new Insets(10, 10, 10, 10));
-//        hb.setAlignment(Pos.CENTER_LEFT);
-//        hb.getChildren().add(l);
-//        messages.getChildren().add(hb);
-//    }
+
+    public void setClosing(Boolean closing) {
+        this.closing = closing;
+    }
+    
 }

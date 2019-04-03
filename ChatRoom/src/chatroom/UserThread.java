@@ -34,35 +34,26 @@ public class UserThread implements Runnable {
     
     
     @Override
-    public void run() {
-         try {
+    public void run() 
+    {
+        try {
+            
             while(true)
             {
                 int code = inSocket.readInt();
                 System.out.println(code);
                 selectAction(code);
+                if(code == 110)
+                    break;
             }
-            
-         } catch (IOException ex) {
-            Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+            inSocket.close();
+            outSocket.close();
+            socket.close();
+            connectedUsers.remove(this);
+        } catch (IOException ex) {
+           Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
         }
-;
         
-    }
-    
-    
-    public void sendMessage(String mess)
-    {
-        for(int i = 0; i < connectedUsers.size(); i++)
-        {
-            if(!connectedUsers.get(i).equals(this))
-            try {
-                connectedUsers.get(i).outSocket.writeInt(14);
-                connectedUsers.get(i).outSocket.writeUTF(mess);
-            } catch (IOException ex) {
-                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     }
     
     private void selectAction(int action) throws IOException
@@ -80,12 +71,12 @@ public class UserThread implements Runnable {
                 for(int i = 0; i < activeRooms.size(); i++)
                     outSocket.writeUTF(activeRooms.get(i).name);
                 for (UserThread connectedUser : connectedUsers) {
-                if(!connectedUser.equals(this))
-                {
-                    connectedUser.outSocket.writeInt(10);
-                    connectedUser.outSocket.writeUTF(name);
+                    if(!connectedUser.equals(this))
+                    {
+                        connectedUser.outSocket.writeInt(10);
+                        connectedUser.outSocket.writeUTF(name);
+                    }
                 }
-            }
                 break;
             }
             case 102: //Crear sala
@@ -114,33 +105,7 @@ public class UserThread implements Runnable {
             {
                 Room cr = findRoom(inSocket.readUTF());
                 if(cr != null)
-                {
-                    Boolean isAdmin = cr.admin.equals(this);
-                    cr.removeMember(this);
-                    if(isAdmin)
-                    {
-                        cr.admin = null;
-                        cr.admin = cr.members.get(new Random().nextInt(cr.members.size()));
-                        System.out.println(cr.admin.name);
-                        cr.admin.outSocket.writeInt(16);
-                        cr.admin.outSocket.writeUTF(cr.name);
-                    }
-                    
-                    for(int i = 0; i < cr.members.size(); i++)
-                    {
-                        if(!cr.members.get(i).equals(this))
-                        {
-                            try {
-                                cr.members.get(i).outSocket.writeInt(17);
-                                cr.members.get(i).outSocket.writeUTF(cr.name);
-                                cr.members.get(i).outSocket.writeUTF(name);
-                            } catch (IOException ex) {
-                                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
-
-                    }
-                }
+                    leaveRoom(cr);
                 break;
             }
             case 105: //Admin agrega usuario
@@ -164,12 +129,21 @@ public class UserThread implements Runnable {
                             Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-
                 }
                 break;
             }
             case 106:// Sala eliminada por admin
             {
+                Room cr = findRoom(inSocket.readUTF());
+                for(UserThread member: cr.members)
+                {
+                    if(!member.equals(this))
+                    {
+                        member.outSocket.writeInt(23);
+                        member.outSocket.writeUTF(cr.name);
+                    }
+                }
+                activeRooms.remove(cr);
                 break;
             }
             case 107: //Mensaje
@@ -223,15 +197,75 @@ public class UserThread implements Runnable {
                                 Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         }
-
                     }
                 }
                 break;
             }
             case 110: //Desconexion de usuario
             {
+                for(Room room : activeRooms)
+                {
+                    if(room.isMember(this))
+                        leaveRoom(room);
+                }
+                for (UserThread connectedUser : connectedUsers) {
+                    if(!connectedUser.equals(this))
+                    {
+                        connectedUser.outSocket.writeInt(22);
+                        connectedUser.outSocket.writeUTF(name);
+                    }
+                }
                 break;
             }
+        }
+    }
+    
+    public void sendMessage(String mess)
+    {
+        for(int i = 0; i < connectedUsers.size(); i++)
+        {
+            if(!connectedUsers.get(i).equals(this))
+            try {
+                connectedUsers.get(i).outSocket.writeInt(14);
+                connectedUsers.get(i).outSocket.writeUTF(mess);
+            } catch (IOException ex) {
+                Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    private void leaveRoom(Room cr) throws IOException
+    {
+        Boolean isAdmin = cr.admin.equals(this);
+        cr.removeMember(this);
+        if(cr.members.size() > 0)
+        {
+            if(isAdmin)
+            {
+                cr.admin = null;
+                cr.admin = cr.members.get(new Random().nextInt(cr.members.size()));
+                cr.admin.outSocket.writeInt(16);
+                cr.admin.outSocket.writeUTF(cr.name);
+            }
+
+            for(int i = 0; i < cr.members.size(); i++)
+            {
+                if(!cr.members.get(i).equals(this))
+                {
+                    try {
+                        cr.members.get(i).outSocket.writeInt(17);
+                        cr.members.get(i).outSocket.writeUTF(cr.name);
+                        cr.members.get(i).outSocket.writeUTF(name);
+                    } catch (IOException ex) {
+                        Logger.getLogger(UserThread.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+            }
+        }
+        else
+        {
+            activeRooms.remove(cr);
         }
     }
     

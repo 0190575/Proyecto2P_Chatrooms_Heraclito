@@ -20,8 +20,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -42,12 +40,9 @@ public class ChatClientUI extends Application {
     DataInputStream inSocket;
     DataOutputStream outSocket;
     ArrayList<ChatRoom> myChatRooms;
+    Receiver receiver;
     @Override
     public void start(Stage primaryStage) {
-//        myChatRooms = new ArrayList<ChatRoom>();
-//        ChatRoom prueba = new ChatRoom("Sala uno", outSocket);
-//        myChatRooms.add(prueba);
-        
         
         Button btn = new Button();
         btn.setText("START");
@@ -87,7 +82,8 @@ public class ChatClientUI extends Application {
                     Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 primaryStage.setScene(menu.menuScene());
-                Thread t = new Thread(new Receiver(inSocket, menu));
+                receiver = new Receiver(inSocket, menu);
+                Thread t = new Thread(receiver);
                 t.start();
                 primaryStage.show();
             }
@@ -116,30 +112,18 @@ public class ChatClientUI extends Application {
         launch(args);
     }
     
-    
-    synchronized public void updateMessages(String message, VBox messages)
+    @Override
+    public void stop()
     {
-        Label l = new Label(message);
-        l.setTextFill(Paint.valueOf("red"));
-        l.setStyle("-fx-font-weight: bold;");
-        l.setAlignment(Pos.CENTER_RIGHT);
-        HBox hb = new HBox();
-        hb.setPadding(new Insets(10, 10, 10, 10));
-        hb.setAlignment(Pos.CENTER_RIGHT);
-        hb.autosize();
-        hb.getChildren().add(l);
-        messages.getChildren().add(hb);
-    }
-    
-    public ChatRoom getChatRoombyName(String crName)
-    {
-        for(int i = 0; i < myChatRooms.size(); i++)
-        {
-            if(myChatRooms.get(i).getName().equals(crName))
-                return myChatRooms.get(i);
+        receiver.setClosing(true);
+        try {
+            outSocket.writeInt(110);
+            inSocket.close();
+            outSocket.close();
+            socket.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ChatClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-            
-        return null;
     }
 }
 

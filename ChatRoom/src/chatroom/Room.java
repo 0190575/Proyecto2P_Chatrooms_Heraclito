@@ -53,16 +53,12 @@ public class Room {
     public void removeMember(UserThread member) //String name)
     {
         members.remove(member);
-//        for(int i = 0; i < members.size(); i++)
-//        {
-//          
-//            if(members.get(i).name.equals(name))
-//            {
-//               members.remove(i);
-//               break;
-//            }
-//                
-//        }
     }
     
+    public Boolean isMember(UserThread user)
+    {
+        if(members.contains(user))
+            return true;
+        return false;
+    }
 }
