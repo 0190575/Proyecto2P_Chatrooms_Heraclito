@@ -139,7 +139,7 @@ public class UserThread implements Runnable {
                 {
                     if(!member.equals(this))
                     {
-                        member.outSocket.writeInt(23);
+                        member.outSocket.writeInt(13);
                         member.outSocket.writeUTF(cr.name);
                     }
                 }

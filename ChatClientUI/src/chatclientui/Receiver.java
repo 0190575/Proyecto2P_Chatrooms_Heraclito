@@ -88,19 +88,21 @@ public class Receiver implements Runnable{
             }
             case 13: //Sala eliminada por admin
             {
-                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+                String room = inSocket.readUTF();
                 Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Deleted room");
-                        alert.setHeaderText(cr.getName() + " has been deleted by its admin");
-                        if(menu.stage.getTitle().equals(cr.getName()))
+                        alert.setHeaderText(room + " has been deleted by its admin");
+                        if(menu.stage.getTitle().equals(room))
                         {
                             menu.stage.setTitle("Menu");
                             menu.stage.setScene(menu.menuScene());
                             menu.stage.show();
                         }
                         alert.showAndWait();
-                        menu.leaveRoom(cr.getName());
+                        if(menu.getChatRoombyName(room) != null)
+                            menu.leaveRoom(room);     
+                        menu.removeRoom(room);
                     });
                 break;
             }
@@ -201,7 +203,7 @@ public class Receiver implements Runnable{
                 });
                 break;
             }
-            case 22:
+            case 22: //Otro usuario se desconecta
             {
                 String s = inSocket.readUTF();
                 Platform.runLater(() -> {
@@ -209,26 +211,25 @@ public class Receiver implements Runnable{
                 });
                 break;
             }
-            case 23: //Sala eliminada por admin
-            {
-                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Room deleted");
-                    alert.setHeaderText(cr.getName() + " has been deleted by its admin");
-                    if(menu.stage.getTitle().equals(cr.getName()))
-                    {
-                        menu.stage.setTitle("Menu");
-                        menu.stage.setScene(menu.menuScene());
-                        menu.stage.show();
-                    }
-                    alert.showAndWait();
-                    menu.leaveRoom(cr.getName());
-                    menu.removeRoom(cr.getName());
-                });
-                
-                break;
-            }
+//            case 23: //Sala eliminada por admin
+//            {
+//                ChatRoom cr = menu.getChatRoombyName(inSocket.readUTF());
+//                Platform.runLater(() -> {
+//                    Alert alert = new Alert(Alert.AlertType.ERROR);
+//                    alert.setTitle("Room deleted");
+//                    alert.setHeaderText(cr.getName() + " has been deleted by its admin");
+//                    if(menu.stage.getTitle().equals(cr.getName()))
+//                    {
+//                        menu.stage.setTitle("Menu");
+//                        menu.stage.setScene(menu.menuScene());
+//                        menu.stage.show();
+//                    }
+//                    alert.showAndWait();
+//                    menu.leaveRoom(cr.getName());
+//                });
+//                
+//                break;
+//            }
             default:
             {
                 break;
